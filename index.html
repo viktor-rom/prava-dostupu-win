@@ -7,12 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Chosen Palette: Calm Harmony (Warm Neutrals + Subtle Blue Accent) -->
-    <!-- Application Structure Plan: A four-section, thematic single-page application enhanced with AI tutor and TTS. Structure: 1. Основи (The "Who": Users/Groups/PoLP/TTS), 2. Рівні Контролю (The "What": Rights vs. Permissions), 3. Управління (The "How": Tools & Group Power Chart), 4. Як це Працює (The "Why": SID & Effective Rights Calculator), 5. AI Tutor. This structure provides a logical, progressive learning path, culminating in a dynamic Q&A section for personalized learning, justifying the AI integration. -->
+    <!-- Application Structure Plan: A four-section, thematic single-page application. Structure: 1. Основи (The "Who": Users/Groups/PoLP), 2. Рівні Контролю (The "What": Rights vs. Permissions), 3. Управління (The "How": Tools & Group Power Chart), 4. Як це Працює (The "Why": SID & Effective Rights Calculator). This structure is chosen for a logical learning flow, guiding a student from basic definitions to complex interactions, which is more intuitive for learning than simply mirroring the four-lesson report. -->
     <!-- Visualization & Content Choices: 
-      1. Report Info: Built-in groups power levels (Lesson 1/3). Goal: Compare. Viz: Horizontal Bar Chart. Interaction: Tooltip on hover. Library: Chart.js (Canvas).
-      2. Report Info: Effective Rights Calculation (Lesson 4). Goal: Explore/Inform. Viz: Interactive Calculator (HTML/JS). Interaction: User selects group memberships and direct permissions; JS calculates the outcome. Library: Vanilla JS.
-      3. Report Info: Principle of Least Privilege (PoLP). Goal: Engagement/Accessibility. Viz: TTS Narration. Interaction: Click to play audio explanation. Library: Gemini API (gemini-2.5-flash-preview-tts).
-      4. Report Info: General concepts/scenarios. Goal: Support/Grounding. Viz: AI Tutor Q&A. Interaction: User input -> API call -> Text output + Sources. Library: Gemini API (gemini-2.5-flash-preview-09-2025) with Google Search grounding.
+      1. Report Info: Built-in groups power levels (Lesson 1/3). Goal: Compare. Viz: Horizontal Bar Chart. Interaction: Tooltip on hover. Justification: Instantly visualizes the PoLP concept and group hierarchy. Library: Chart.js (Canvas).
+      2. Report Info: Rights vs. Permissions (Lesson 2/4). Goal: Organize/Compare. Viz: Two-column HTML/CSS layout. Interaction: N/A (static comparison). Justification: Clearly separates two easily confused core concepts. Library: Tailwind CSS.
+      3. Report Info: Effective Rights Calculation (Lesson 4). Goal: Explore/Inform. Viz: Interactive Calculator (HTML/JS). Interaction: User selects group memberships and direct permissions; JS calculates the outcome. Justification: Makes the most complex rule (Deny > Allow) tangible and interactive, which is far more effective than static text. Library: Vanilla JS.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -45,21 +44,6 @@
         html {
             scroll-behavior: smooth;
         }
-        .source-link {
-            text-decoration: underline;
-            color: #2563EB;
-        }
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #2563EB;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body class="bg-neutral-50 text-neutral-800">
@@ -70,7 +54,6 @@
             <a href="#control" class="nav-link text-neutral-600 hover:text-blue-600">Рівні Контролю</a>
             <a href="#management" class="nav-link text-neutral-600 hover:text-blue-600">Управління</a>
             <a href="#advanced" class="nav-link text-neutral-600 hover:text-blue-600">Як це Працює</a>
-            <a href="#tutor" class="nav-link text-neutral-600 hover:text-blue-600">Наставник ✨</a>
         </nav>
     </header>
 
@@ -89,23 +72,14 @@
                 <p>Група (Group) – це просто "контейнер" для облікових записів. Замість того, щоб давати права 100 учням окремо, адміністратор дає права одній групі "Учні 10-А", і всі учасники групи автоматично їх отримують. Це значно спрощує управління.</p>
             </div>
 
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg shadow-sm flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold text-blue-900 mb-3">Золоте Правило: Принцип Найменших Привілеїв (PoLP)</h2>
-                    <p class="text-blue-800 text-lg">
-                        Це найважливіший принцип кібербезпеки: <strong>Кожен користувач повинен мати лише ті права, які абсолютно необхідні йому для роботи, і не більше.</strong>
-                    </p>
-                    <p class="text-blue-800 mt-2">
-                        Саме тому ви не повинні працювати з правами "Адміністратора" щодня. Якщо вірус вразить обліковий запис "Користувача", він завдасть набагато менше шкоди, ніж якби він вразив "Адміністратора".
-                    </p>
-                </div>
-                <div class="flex-shrink-0 ml-4">
-                    <button id="ttsButton" class="bg-blue-200 text-blue-800 p-3 rounded-full shadow-md hover:bg-blue-300 transition duration-300 transform hover:scale-105 flex items-center justify-center w-12 h-12">
-                        <span id="ttsIcon" class="text-2xl">🔊</span>
-                        <div id="ttsLoading" class="hidden spinner"></div>
-                    </button>
-                    <audio id="ttsAudio" class="hidden"></audio>
-                </div>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-900 mb-3">Золоте Правило: Принцип Найменших Привілеїв (PoLP)</h2>
+                <p class="text-blue-800 text-lg">
+                    Це найважливіший принцип кібербезпеки: <strong>Кожен користувач повинен мати лише ті права, які абсолютно необхідні йому для роботи, і не більше.</strong>
+                </p>
+                <p class="text-blue-800 mt-2">
+                    Саме тому ви не повинні працювати з правами "Адміністратора" щодня. Якщо вірус вразить обліковий запис "Користувача", він завдасть набагато менше шкоди, ніж якби він вразив "Адміністратора".
+                </p>
             </div>
         </section>
 
@@ -170,7 +144,7 @@
             </div>
         </section>
 
-        <section id="advanced" class="mb-16 scroll-mt-24">
+        <section id="advanced" class="scroll-mt-24">
             <h2 class="text-3xl font-bold text-neutral-900 mb-4">Як це Працює? (SID та Ефективні Права)</h2>
             <p class="text-lg text-neutral-700 mb-8">
                 Наостанок, давайте зазирнемо "під капот". Windows не використовує імена (як "Petro") для безпеки. Вона використовує унікальні коди (SID). Розуміння цього допоможе вам розібратися, як система приймає рішення про доступ до файлів.
@@ -221,37 +195,7 @@
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section id="tutor" class="mt-16 pt-8 border-t border-neutral-300 scroll-mt-24">
-            <h2 class="text-3xl font-bold text-neutral-900 mb-4">✨ Твій Персональний Наставник (Gemini Tutor)</h2>
-            <p class="text-lg text-neutral-700 mb-6">Запитай у Штучного Інтелекту про будь-який складний термін, реальний приклад або ситуацію, пов'язану з правами користувачів Windows. Наставник надасть тобі чітку, ґрунтовну відповідь, використовуючи актуальну інформацію з Інтернету.</p>
-
-            <div class="bg-white p-6 rounded-lg shadow-lg border border-neutral-200">
-                <div class="flex flex-col md:flex-row gap-4 mb-4">
-                    <input type="text" id="aiQuery" placeholder="Наприклад: 'Що таке обліковий запис DefaultAccount?'" class="flex-grow p-3 border border-neutral-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                    <button id="askAiButton" class="flex-shrink-0 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">
-                        Запитати Наставника
-                    </button>
-                </div>
-                
-                <div id="aiLoading" class="hidden text-center p-4">
-                    <div class="spinner mx-auto"></div>
-                    <p class="text-neutral-500 mt-2">ШІ шукає відповідь...</p>
-                </div>
-                
-                <div id="aiResponse" class="mt-4 p-4 rounded-lg bg-neutral-100 hidden">
-                    <h4 class="font-bold text-lg mb-2 text-indigo-800">Відповідь ШІ:</h4>
-                    <p id="responseText" class="text-neutral-800 whitespace-pre-wrap"></p>
-                    <div id="sourceContainer" class="mt-3 pt-3 border-t border-neutral-300 text-sm text-neutral-600">
-                        <p class="font-medium">Джерела:</p>
-                        <ul id="sourceList" class="list-disc list-inside ml-4"></ul>
-                    </div>
-                </div>
-                <div id="aiError" class="mt-4 p-4 rounded-lg bg-red-100 text-red-700 hidden">
-                    Сталася помилка при отриманні відповіді. Спробуйте ще раз.
-                </div>
-            </div>
         </section>
 
     </main>
@@ -261,97 +205,8 @@
     </footer>
 
     <script>
-        const apiKey = ""; 
-
-        // --- TTS Helper Functions (PCM to WAV) ---
-
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        function pcmToWav(pcm16, sampleRate) {
-            const numChannels = 1;
-            const sampleBits = 16;
-            const byteRate = numChannels * sampleRate * (sampleBits / 8);
-            const blockAlign = numChannels * (sampleBits / 8);
-            const dataSize = pcm16.length * (sampleBits / 8);
-
-            const buffer = new ArrayBuffer(44 + dataSize);
-            const view = new DataView(buffer);
-            let offset = 0;
-
-            function writeString(str) {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset++, str.charCodeAt(i));
-                }
-            }
-
-            // RIFF chunk
-            writeString('RIFF');
-            view.setUint32(offset, 36 + dataSize, true); offset += 4;
-            writeString('WAVE');
-
-            // FMT chunk
-            writeString('fmt ');
-            view.setUint32(offset, 16, true); offset += 4;      // Chunk size
-            view.setUint16(offset, 1, true); offset += 2;       // Audio format (1 for PCM)
-            view.setUint16(offset, numChannels, true); offset += 2;
-            view.setUint32(offset, sampleRate, true); offset += 4;
-            view.setUint32(offset, byteRate, true); offset += 4;
-            view.setUint16(offset, blockAlign, true); offset += 2;
-            view.setUint16(offset, sampleBits, true); offset += 2;
-
-            // Data chunk
-            writeString('data');
-            view.setUint32(offset, dataSize, true); offset += 4;
-
-            // Write PCM data (Int16)
-            for (let i = 0; i < pcm16.length; i++, offset += 2) {
-                view.setInt16(offset, pcm16[i], true);
-            }
-
-            return new Blob([buffer], { type: 'audio/wav' });
-        }
-        
-        // --- Gemini API Call Function with Backoff ---
-
-        async function fetchApiWithBackoff(url, payload, maxRetries = 5) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.status === 429 && i < maxRetries - 1) {
-                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return await response.json();
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-        
-        // --- Core App Logic ---
-
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- Chart.js Initialization ---
             const ctx = document.getElementById('groupPowerChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
@@ -412,7 +267,6 @@
                 }
             });
 
-            // --- Effective Rights Simulator Logic ---
             const calculateBtn = document.getElementById('calculateRights');
             const resultDiv = document.getElementById('result');
             const resultText = document.getElementById('resultText');
@@ -448,16 +302,13 @@
                 if (deny.has('Modify')) {
                     canModify = false;
                     reason = 'Дозвіл "Modify" був явно заборонений (Deny). Заборона завжди має вищий пріоритет, навіть якщо група "Admins" надає "Full Control".';
+                } else if (directPermission === 'none' && !isAdmin && isUser) {
+                     reason = 'Petro має право "Read" від групи "Users", але не має права "Modify".';
                 } else if (isAdmin) {
                     reason = 'Petro має "Full Control" від групи "Admins", що включає "Read" та "Modify".';
                 } else if (directPermission === 'allow_modify') {
                     reason = 'Petro отримав "Read" від групи "Users" та "Modify" напряму.';
-                } else if (directPermission === 'none' && !isAdmin && isUser) {
-                     reason = 'Petro має право "Read" від групи "Users", але не має права "Modify", оскільки воно не було надано.';
-                } else {
-                     reason = 'Дозвіл надається шляхом сумування дозволів усіх груп, до яких належить користувач, якщо немає явних заборон.';
                 }
-
 
                 const readResult = canRead ? '<span class="text-green-600 font-bold">ДОЗВОЛЕНО</span>' : '<span class="text-red-600 font-bold">ЗАБОРОНЕНО</span>';
                 const modifyResult = canModify ? '<span class="text-green-600 font-bold">ДОЗВОЛЕНО</span>' : '<span class="text-red-600 font-bold">ЗАБОРОНЕНО</span>';
@@ -467,7 +318,6 @@
                 resultDiv.classList.remove('hidden');
             });
 
-            // --- Navigation Logic ---
             const navLinks = document.querySelectorAll('.nav-link');
             const sections = document.querySelectorAll('section');
 
@@ -477,7 +327,7 @@
                 threshold: 0.3
             };
 
-            const observer = new IntersectionObserver((entries) => {
+            const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         navLinks.forEach(link => {
@@ -492,137 +342,6 @@
 
             sections.forEach(section => {
                 observer.observe(section);
-            });
-            
-            // --- TTS API Integration (gemini-2.5-flash-preview-tts) ---
-            const ttsButton = document.getElementById('ttsButton');
-            const ttsIcon = document.getElementById('ttsIcon');
-            const ttsLoading = document.getElementById('ttsLoading');
-            const ttsAudio = document.getElementById('ttsAudio');
-            const ttsText = "Принцип Найменших Привілеїв: Кожен користувач повинен мати лише ті права, які абсолютно необхідні йому для виконання своїх робочих завдань, і не більше. Це золоте правило кібербезпеки.";
-
-            ttsButton.addEventListener('click', async () => {
-                if (ttsAudio.src) {
-                    ttsAudio.play();
-                    return;
-                }
-
-                ttsIcon.classList.add('hidden');
-                ttsLoading.classList.remove('hidden');
-                ttsButton.disabled = true;
-
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{
-                        parts: [{ text: ttsText }]
-                    }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: {
-                            voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: "Kore" }
-                            }
-                        }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-
-                try {
-                    const result = await fetchApiWithBackoff(apiUrl, payload);
-
-                    const part = result?.candidates?.[0]?.content?.parts?.[0];
-                    const audioData = part?.inlineData?.data;
-                    const mimeType = part?.inlineData?.mimeType;
-
-                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                        const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
-                        
-                        const pcmData = base64ToArrayBuffer(audioData);
-                        const pcm16 = new Int16Array(pcmData);
-                        const wavBlob = pcmToWav(pcm16, sampleRate);
-                        
-                        ttsAudio.src = URL.createObjectURL(wavBlob);
-                        ttsAudio.play();
-                    } else {
-                        console.error("TTS audio data missing or invalid format.");
-                    }
-                } catch (error) {
-                    console.error("TTS API error:", error);
-                } finally {
-                    ttsIcon.classList.remove('hidden');
-                    ttsLoading.classList.add('hidden');
-                    ttsButton.disabled = false;
-                }
-            });
-
-            // --- AI Tutor Integration (gemini-2.5-flash-preview-09-2025 with Grounding) ---
-            const askAiButton = document.getElementById('askAiButton');
-            const aiQueryInput = document.getElementById('aiQuery');
-            const aiLoadingDiv = document.getElementById('aiLoading');
-            const aiResponseDiv = document.getElementById('aiResponse');
-            const responseText = document.getElementById('responseText');
-            const sourceList = document.getElementById('sourceList');
-            const aiErrorDiv = document.getElementById('aiError');
-
-            askAiButton.addEventListener('click', async () => {
-                const userQuery = aiQueryInput.value.trim();
-                if (!userQuery) return;
-
-                aiResponseDiv.classList.add('hidden');
-                aiErrorDiv.classList.add('hidden');
-                aiLoadingDiv.classList.remove('hidden');
-                askAiButton.disabled = true;
-
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-                const systemPrompt = "Ви — досвідчений наставник з кібербезпеки Windows для учнів 10-х класів. Поясніть запит простою, але точною українською мовою. Будьте стислими, але вичерпними. Обов'язково використовуйте Google Search для надання актуальної та ґрунтовної інформації.";
-                
-                const payload = {
-                    contents: [{ parts: [{ text: userQuery }] }],
-                    tools: [{ "google_search": {} }],
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }]
-                    }
-                };
-
-                try {
-                    const result = await fetchApiWithBackoff(apiUrl, payload);
-                    const candidate = result.candidates?.[0];
-
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        responseText.textContent = candidate.content.parts[0].text;
-                        
-                        sourceList.innerHTML = '';
-                        const groundingMetadata = candidate.groundingMetadata;
-                        let sourcesFound = false;
-
-                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                            groundingMetadata.groundingAttributions.forEach(attribution => {
-                                if (attribution.web?.uri && attribution.web?.title) {
-                                    const listItem = document.createElement('li');
-                                    listItem.innerHTML = `<a href="${attribution.web.uri}" target="_blank" class="source-link" rel="noopener noreferrer">${attribution.web.title}</a>`;
-                                    sourceList.appendChild(listItem);
-                                    sourcesFound = true;
-                                }
-                            });
-                        }
-                        
-                        if (!sourcesFound) {
-                            sourceList.innerHTML = '<li>Не вдалося знайти зовнішніх джерел.</li>';
-                        }
-
-                        aiResponseDiv.classList.remove('hidden');
-                    } else {
-                        aiErrorDiv.classList.remove('hidden');
-                    }
-                } catch (error) {
-                    console.error("AI Tutor API error:", error);
-                    aiErrorDiv.classList.remove('hidden');
-                } finally {
-                    aiLoadingDiv.classList.add('hidden');
-                    askAiButton.disabled = false;
-                }
             });
         });
     </script>
