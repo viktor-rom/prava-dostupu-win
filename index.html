@@ -3,346 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Інтерактивний Конспект: Права Користувачів Windows 10</title>
+    <title>Інтерактивний Огляд: Права Доступу Windows</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chosen Palette: Calm Harmony (Warm Neutrals + Subtle Blue Accent) -->
-    <!-- Application Structure Plan: A four-section, thematic single-page application. Structure: 1. Основи (The "Who": Users/Groups/PoLP), 2. Рівні Контролю (The "What": Rights vs. Permissions), 3. Управління (The "How": Tools & Group Power Chart), 4. Як це Працює (The "Why": SID & Effective Rights Calculator). This structure is chosen for a logical learning flow, guiding a student from basic definitions to complex interactions, which is more intuitive for learning than simply mirroring the four-lesson report. -->
+    
+    <!-- Chosen Palette: Calm Harmony (Warm Neutrals) -->
+    <!-- Application Structure Plan: Тематичний 4-секційний SPA. 1. Основи (Визначення + PoLP-діаграма), 2. Контроль (Порівняння "Прав" та "Дозволів"), 3. Інструменти (Визначення), 4. Симулятор (Інтерактивний калькулятор ефективних прав). Ця структура логічно веде користувача від 'хто' (користувачі/групи) до 'що' (права/дозволи) і, нарешті, до 'як' (правила), що краще для навчання, ніж лінійний звіт. Симулятор є ключовим для розуміння складних правил з Конспекту 4. -->
     <!-- Visualization & Content Choices: 
-      1. Report Info: Built-in groups power levels (Lesson 1/3). Goal: Compare. Viz: Horizontal Bar Chart. Interaction: Tooltip on hover. Justification: Instantly visualizes the PoLP concept and group hierarchy. Library: Chart.js (Canvas).
-      2. Report Info: Rights vs. Permissions (Lesson 2/4). Goal: Organize/Compare. Viz: Two-column HTML/CSS layout. Interaction: N/A (static comparison). Justification: Clearly separates two easily confused core concepts. Library: Tailwind CSS.
-      3. Report Info: Effective Rights Calculation (Lesson 4). Goal: Explore/Inform. Viz: Interactive Calculator (HTML/JS). Interaction: User selects group memberships and direct permissions; JS calculates the outcome. Justification: Makes the most complex rule (Deny > Allow) tangible and interactive, which is far more effective than static text. Library: Vanilla JS.
+      1. Report Info: Ієрархія груп (K1). Goal: Compare. Viz: Горизонтальна стовпчаста діаграма. Interaction: Tooltip. Justification: Візуалізує PoLP. Library: Chart.js.
+      2. Report Info: Права vs Дозволи (K2). Goal: Compare/Organize. Viz: 2-колонковий HTML-макет. Justification: Чітко розмежовує два складні поняття. Library: Tailwind CSS.
+      3. Report Info: Правила Ефективних Прав (K4). Goal: Explore/Inform. Viz: Інтерактивний калькулятор (HTML/JS). Interaction: Користувач натискає чеки/dropdown, JS обчислює результат на основі правила Deny>Allow. Justification: Робить найскладніше абстрактне правило відчутним. Library: Vanilla JS.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
         }
         .chart-container {
             position: relative;
             width: 100%;
             max-width: 600px;
-            height: 300px;
-            max-height: 400px;
             margin-left: auto;
             margin-right: auto;
+            height: 280px;
+            max-height: 350px;
         }
         @media (min-width: 768px) {
-            .chart-container { height: 350px; }
+            .chart-container { height: 320px; }
         }
         .nav-link {
             transition: all 0.3s;
-            border-bottom: 2px solid transparent;
-            padding-bottom: 4px;
+            border-bottom: 3px solid transparent;
         }
         .nav-link.active {
-            border-bottom-color: #2563EB;
-            color: #1E3A8A;
-            font-weight: 500;
-        }
-        html {
-            scroll-behavior: smooth;
+            border-bottom-color: #1d4ed8; /* blue-700 */
+            color: #1e3a8a; /* blue-900 */
         }
     </style>
 </head>
 <body class="bg-neutral-50 text-neutral-800">
 
-    <header class="bg-white shadow-md sticky top-0 z-50">
-        <nav class="container mx-auto max-w-5xl px-4 py-4 flex justify-center space-x-4 md:space-x-8">
-            <a href="#basics" class="nav-link text-neutral-600 hover:text-blue-600">Основи</a>
-            <a href="#control" class="nav-link text-neutral-600 hover:text-blue-600">Рівні Контролю</a>
-            <a href="#management" class="nav-link text-neutral-600 hover:text-blue-600">Управління</a>
-            <a href="#advanced" class="nav-link text-neutral-600 hover:text-blue-600">Як це Працює</a>
+    <!-- Навігація -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto max-w-6xl px-4 py-4 flex justify-center space-x-6 md:space-x-10">
+            <a href="#basics" class="nav-link text-neutral-600 hover:text-blue-700 font-medium pb-2">1. Основи</a>
+            <a href="#control" class="nav-link text-neutral-600 hover:text-blue-700 font-medium pb-2">2. Рівні Контролю</a>
+            <a href="#tools" class="nav-link text-neutral-600 hover:text-blue-700 font-medium pb-2">3. Інструменти</a>
+            <a href="#simulator" class="nav-link text-neutral-600 hover:text-blue-700 font-medium pb-2">4. Симулятор Прав</a>
         </nav>
     </header>
 
-    <main class="container mx-auto max-w-5xl p-4 md:p-8">
+    <!-- Основний Вміст -->
+    <main class="container mx-auto max-w-6xl p-4 md:p-10">
 
-        <section id="basics" class="mb-16 scroll-mt-24">
-            <h1 class="text-3xl font-bold text-neutral-900 mb-4">Основи: Користувачі та Групи</h1>
-            <p class="text-lg text-neutral-700 mb-6">
-                Ласкаво просимо до інтерактивного конспекту! Цей розділ познайомить вас з базовими "будівельними блоками" безпеки Windows: обліковими записами та групами. Розуміння того, "хто" є хто в системі, є першим кроком до налаштування безпеки.
+        <!-- Розділ 1: Основи -->
+        <section id="basics" class="mb-20 scroll-mt-24">
+            <h1 class="text-4xl font-bold text-neutral-900 mb-5">1. Основи: Суб'єкти Безпеки та PoLP</h1>
+            <p class="text-lg text-neutral-700 mb-10 max-w-4xl">
+                Цей розділ визначає фундаментальні "будівельні блоки" безпеки Windows: облікові записи та групи. Розуміння того, "хто" є хто в системі та яка їхня роль, є першим кроком до налаштування безпеки. Основою всього є Принцип Найменших Привілеїв (PoLP).
             </p>
 
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200 mb-8">
-                <h2 class="text-2xl font-bold mb-3">Що таке Обліковий Запис?</h2>
-                <p class="mb-4">Обліковий запис користувача (User Account) – це унікальний набір інформації, який дозволяє Windows ідентифікувати вас, застосувати ваші налаштування (наприклад, шпалери робочого столу) та визначити, що вам дозволено робити.</p>
-                <h2 class="text-2xl font-bold mb-3">Що таке Група?</h2>
-                <p>Група (Group) – це просто "контейнер" для облікових записів. Замість того, щоб давати права 100 учням окремо, адміністратор дає права одній групі "Учні 10-А", і всі учасники групи автоматично їх отримують. Це значно спрощує управління.</p>
-            </div>
-
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg shadow-sm">
-                <h2 class="text-2xl font-bold text-blue-900 mb-3">Золоте Правило: Принцип Найменших Привілеїв (PoLP)</h2>
-                <p class="text-blue-800 text-lg">
-                    Це найважливіший принцип кібербезпеки: <strong>Кожен користувач повинен мати лише ті права, які абсолютно необхідні йому для роботи, і не більше.</strong>
-                </p>
-                <p class="text-blue-800 mt-2">
-                    Саме тому ви не повинні працювати з правами "Адміністратора" щодня. Якщо вірус вразить обліковий запис "Користувача", він завдасть набагато менше шкоди, ніж якби він вразив "Адміністратора".
-                </p>
-            </div>
-        </section>
-
-        <section id="control" class="mb-16 scroll-mt-24">
-            <h2 class="text-3xl font-bold text-neutral-900 mb-4">Рівні Контролю: Права vs. Дозволи</h2>
-            <p class="text-lg text-neutral-700 mb-8">
-                Це найважливіший розділ для розуміння. В Windows існує два різних типи "дозволів". Їх часто плутають, але вони контролюють абсолютно різні речі. Цей розділ допоможе вам розібратися, у чому різниця.
-            </p>
-
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200">
-                    <h3 class="text-2xl font-bold mb-3 text-blue-700">1. Права Користувача (User Rights)</h3>
-                    <p class="mb-4"><strong>Що це:</strong> Дозвіл на виконання <strong>дій на рівні операційної системи.</strong></p>
-                    <p class="mb-4"><strong>Де керувати:</strong> Локальна Політика Безпеки (<code>secpol.msc</code>)</p>
-                    <p class="font-medium mb-2">Ключові приклади:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                        <li>Вхід до системи локально</li>
-                        <li>Завершення роботи системи</li>
-                        <li>Встановлення системного часу</li>
-                        <li>Резервне копіювання файлів</li>
-                    </ul>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-neutral-200">
+                    <h2 class="text-xl font-bold mb-3">Обліковий Запис</h2>
+                    <p class="text-neutral-600">Унікальний набір даних, що ідентифікує суб'єкта (користувача) та визначає його персональні налаштування.</p>
                 </div>
-
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200">
-                    <h3 class="text-2xl font-bold mb-3 text-green-700">2. Дозволи NTFS (Permissions)</h3>
-                    <p class="mb-4"><strong>Що це:</strong> Дозвіл на виконання <strong>дій з об'єктами</strong> (файлами, папками).</p>
-                    <p class="mb-4"><strong>Де керувати:</strong> Властивості файлу/папки -> вкладка "Безпека"</p>
-                    <p class="font-medium mb-2">Ключові приклади:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                        <li>Читання (Read)</li>
-                        <li>Запис (Write)</li>
-                        <li>Зміна (Modify)</li>
-                        <li>Повний доступ (Full Control)</li>
-                    </ul>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-neutral-200">
+                    <h2 class="text-xl font-bold mb-3">Група Суб'єктів</h2>
+                    <p class="text-neutral-600">Логічна агрегація (контейнер) облікових записів. Права надаються групі, а учасники їх успадковують.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-red-200">
+                    <h2 class="text-xl font-bold text-red-800 mb-3">Група "Адміністратори"</h2>
+                    <p class="text-neutral-600">Володіє необмеженими системними правами. Використовується виключно для адміністративних завдань.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-blue-200">
+                    <h2 class="text-xl font-bold text-blue-800 mb-3">Група "Користувачі"</h2>
+                    <p class="text-neutral-600">Стандартна категорія з обмеженими правами, достатніми для щоденної роботи (запуск програм, робота з документами).</p>
                 </div>
             </div>
-        </section>
 
-        <section id="management" class="mb-16 scroll-mt-24">
-            <h2 class="text-3xl font-bold text-neutral-900 mb-4">Практичне Управління</h2>
-            <p class="text-lg text-neutral-700 mb-8">
-                Тепер, коли ви знаєте теорію, подивімося, як це працює на практиці. Для управління користувачами та групами використовується спеціальна консоль. Також важливо розуміти, які повноваження мають стандартні групи Windows.
-            </p>
-
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200 mb-8">
-                <h3 class="text-2xl font-bold mb-3">Консоль <code>lusrmgr.msc</code></h3>
-                <p class="mb-4">Це ваш основний інструмент. Щоб його запустити, натисніть <strong>Win + R</strong>, введіть <code>lusrmgr.msc</code> і натисніть Enter. Тут ви можете:</p>
-                <ul class="list-disc list-inside space-y-2">
-                    <li><strong>Створювати нових користувачів</strong> (наприклад, "Uchen10A").</li>
-                    <li><strong>Створювати нові групи</strong> (наприклад, "Vchyteli").</li>
-                    <li><strong>Додавати користувачів до груп</strong> (наприклад, додати "Uchen10A" до групи "Users").</li>
-                    <li>Вимикати або видаляти облікові записи.</li>
-                </ul>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200">
-                <h3 class="text-2xl font-bold mb-4 text-center">Рівні Повноважень Вбудованих Груп</h3>
-                <p class="text-center text-neutral-600 mb-6">Ця діаграма показує відносний рівень "влади" у стандартних групах Windows. Вона наочно демонструє Принцип Найменших Привілеїв: група "Users" має значно менше небезпечних прав, ніж "Administrators".</p>
+            <div class="bg-white p-8 rounded-xl shadow-lg border border-neutral-200">
+                <h2 class="text-3xl font-bold text-center mb-4">Принцип Найменших Привілеїв (PoLP)</h2>
+                <p class="text-center text-neutral-700 mb-8 max-w-3xl mx-auto">
+                    Ця діаграма візуалізує Принцип Найменших Привілеїв. Вона показує відносний рівень "влади" або потенційної небезпеки для кожної вбудованої групи. Група "Користувачі" має значно менше повноважень, ніж "Адміністратори", що обмежує шкоду від шкідливих програм чи помилок.
+                </p>
                 <div class="chart-container">
-                    <canvas id="groupPowerChart"></canvas>
+                    <canvas id="powerChart"></canvas>
                 </div>
             </div>
         </section>
 
-        <section id="advanced" class="scroll-mt-24">
-            <h2 class="text-3xl font-bold text-neutral-900 mb-4">Як це Працює? (SID та Ефективні Права)</h2>
-            <p class="text-lg text-neutral-700 mb-8">
-                Наостанок, давайте зазирнемо "під капот". Windows не використовує імена (як "Petro") для безпеки. Вона використовує унікальні коди (SID). Розуміння цього допоможе вам розібратися, як система приймає рішення про доступ до файлів.
+        <!-- Розділ 2: Рівні Контролю -->
+        <section id="control" class="mb-20 scroll-mt-24">
+            <h1 class="text-4xl font-bold text-neutral-900 mb-5">2. Рівні Контролю: Права vs. Дозволи</h1>
+            <p class="text-lg text-neutral-700 mb-10 max-w-4xl">
+                Критично важливо розрізняти два основні механізми контролю в Windows. "Права" визначають, які **системні дії** ви можете виконувати (наприклад, вимикати комп'ютер), тоді як "Дозволи" визначають ваш доступ до **конкретних об'єктів** (наприклад, читати файл).
             </p>
 
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200 mb-8">
-                <h3 class="text-2xl font-bold mb-3">SID та Access Token</h3>
-                <ul class="list-disc list-inside space-y-2">
-                    <li><strong>SID (Ідентифікатор Безпеки):</strong> Уявіть, що це ваш номер паспорта в системі. Коли ви створюєте користувача "Petro", він отримує унікальний SID (наприклад, `S-1-5...-1001`). Якщо ви видалите "Petro" і створите нового "Petro", він отримає новий SID. Для Windows це буде зовсім інша людина.</li>
-                    <li><strong>Access Token (Токен Доступу):</strong> Коли ви входите в систему, Windows видає вам "квиток" (Token). На цьому квитку записаний ваш SID та SID усіх груп, до яких ви належите. Коли ви намагаєтеся відкрити файл, ви показуєте цей квиток.</li>
-                </ul>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-blue-200 flex flex-col">
+                    <div class="text-5xl mb-4">⚙️</div>
+                    <h2 class="text-3xl font-bold text-blue-800 mb-4">Права Користувача (User Rights)</h2>
+                    <p class="text-lg mb-6 flex-grow">Повноваження на виконання **системних дій** на рівні операційної системи.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center"><span class="text-blue-600 font-bold mr-2">Що це:</span> Дії (наприклад, "Вхід до системи локально").</li>
+                        <li class="flex items-center"><span class="text-blue-600 font-bold mr-2">Де:</span> Локальна Політика Безпеки.</li>
+                        <li class="flex items-center"><span class="text-blue-600 font-bold mr-2">Інструмент:</span> <code>secpol.msc</code></li>
+                        <li class="flex items-center"><span class="text-blue-600 font-bold mr-2">Правило:</span> <span class="bg-red-100 text-red-800 px-2 py-1 rounded">Deny > Allow</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-green-200 flex flex-col">
+                    <div class="text-5xl mb-4">📁</div>
+                    <h2 class="text-3xl font-bold text-green-800 mb-4">Дозволи NTFS (Permissions)</h2>
+                    <p class="text-lg mb-6 flex-grow">Повноваження на виконання **операцій з об'єктами** (файлами, каталогами, принтерами).</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center"><span class="text-green-600 font-bold mr-2">Що це:</span> Доступ (наприклад, "Читання", "Запис").</li>
+                        <li class="flex items-center"><span class="text-green-600 font-bold mr-2">Де:</span> Властивості об'єкта -> Безпека.</li>
+                        <li class="flex items-center"><span class="text-green-600 font-bold mr-2">Інструмент:</span> Провідник Windows (Explorer)</li>
+                        <li class="flex items-center"><span class="text-green-600 font-bold mr-2">Правило:</span> <span class="bg-red-100 text-red-800 px-2 py-1 rounded">Deny > Allow</span></li>
+                    </ul>
+                </div>
             </div>
+        </section>
 
-            <div class="bg-white p-6 rounded-lg shadow-lg border border-neutral-200">
-                <h3 class="text-2xl font-bold mb-4 text-center">Симулятор Ефективних Прав</h3>
-                <p class="text-center text-neutral-600 mb-6">
-                    Це найскладніша частина. Як Windows вирішує, чи можна вам відкрити файл, якщо у вас є кілька суперечливих дозволів? Спробуйте цей симулятор, щоб зрозуміти "золоте правило": <strong>Явна ЗАБОРОНА (Deny) завжди перемагає будь-який ДОЗВІЛ (Allow)</strong>.
-                </p>
+        <!-- Розділ 3: Інструменти -->
+        <section id="tools" class="mb-20 scroll-mt-24">
+            <h1 class="text-4xl font-bold text-neutral-900 mb-5">3. Інструменти Адміністрування</h1>
+            <p class="text-lg text-neutral-700 mb-10 max-w-4xl">
+                Управління безпекою в Windows здійснюється через декілька ключових консолей. Кожна з них відповідає за свою частину загальної архітектури безпеки: `lusrmgr.msc` керує суб'єктами, `secpol.msc` – їхніми системними правами, а NTFS – доступом до даних.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-neutral-200">
+                    <h2 class="text-xl font-bold mb-3"><code>lusrmgr.msc</code></h2>
+                    <p class="text-neutral-600"><b>Локальні Користувачі та Групи.</b> Керує тим, "ХТО" існує в системі. Тут ви створюєте облікові записи та додаєте їх до груп.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-neutral-200">
+                    <h2 class="text-xl font-bold mb-3"><code>secpol.msc</code></h2>
+                    <p class="text-neutral-600"><b>Локальна Політика Безпеки.</b> Керує тим, "ЩО" суб'єкти можуть робити на рівні ОС (наприклад, чи можуть вони входити в систему).</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-neutral-200">
+                    <h2 class="text-xl font-bold mb-3">Дозволи NTFS</h2>
+                    <p class="text-neutral-600"><b>Властивості Файлу -> Безпека.</b> Керує "ДОСТУПОМ" до конкретних файлів та папок (наприклад, хто може читати чи змінювати файл).</p>
+                </div>
+            </div>
+        </section>
 
-                <div class="max-w-md mx-auto">
-                    <div class="mb-4">
-                        <label class="font-medium">Членство у групах для "Petro":</label>
-                        <div class="flex items-center mt-2">
-                            <input type="checkbox" id="groupUsers" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
-                            <label for="groupUsers" class="ml-2 block text-sm text-neutral-900">Група "Users" (Дає дозвіл <strong>Read</strong>)</label>
+        <!-- Розділ 4: Симулятор -->
+        <section id="simulator" class="mb-12 scroll-mt-24">
+            <h1 class="text-4xl font-bold text-neutral-900 mb-5">4. Симулятор Ефективних Прав NTFS</h1>
+            <p class="text-lg text-neutral-700 mb-10 max-w-4xl">
+                Найскладнішою частиною є обчислення "Ефективних Прав". Коли користувач належить до багатьох груп з різними дозволами, як система вирішує, чи можна йому відкрити файл? Цей симулятор дозволяє вам експериментувати з правилами: **Дозволи (Allow) сумуються**, але **одна Заборона (Deny) переважає все**.
+            </p>
+
+            <div class="bg-white p-8 md:p-10 rounded-xl shadow-2xl border border-neutral-200">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    
+                    <!-- Панель Управління -->
+                    <div>
+                        <h2 class="text-2xl font-bold mb-6">Налаштування Доступ-Тесту:</h2>
+                        
+                        <div class="mb-6">
+                            <label class="block text-lg font-medium text-neutral-800 mb-3">1. Членство у групах (для 'Petro'):</label>
+                            <div class="space-y-3">
+                                <label for="groupUsers" class="flex items-center p-4 bg-neutral-100 rounded-lg cursor-pointer hover:bg-neutral-200 transition">
+                                    <input type="checkbox" id="groupUsers" class="h-5 w-5 text-blue-600 border-neutral-300 rounded focus:ring-blue-500">
+                                    <span class="ml-3 text-neutral-700">Член групи <b class="text-black">"Users"</b> (Надає: <span class="font-medium text-green-700">Читання</span>)</span>
+                                </label>
+                                <label for="groupManagers" class="flex items-center p-4 bg-neutral-100 rounded-lg cursor-pointer hover:bg-neutral-200 transition">
+                                    <input type="checkbox" id="groupManagers" class="h-5 w-5 text-blue-600 border-neutral-300 rounded focus:ring-blue-500">
+                                    <span class="ml-3 text-neutral-700">Член групи <b class="text-black">"Managers"</b> (Надає: <span class="font-medium text-green-700">Зміна</span>)</span>
+                                </label>
+                            </div>
                         </div>
-                        <div class="flex items-center mt-2">
-                            <input type="checkbox" id="groupAdmins" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <label for="groupAdmins" class="ml-2 block text-sm text-neutral-900">Група "Admins" (Дає дозвіл <strong>Full Control</strong>)</label>
+
+                        <div class="mb-6">
+                            <label for="directPermission" class="block text-lg font-medium text-neutral-800 mb-3">2. Прямий дозвіл для 'Petro' (на файлі):</label>
+                            <select id="directPermission" class="w-full p-3 border border-neutral-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="none">(Немає прямого дозволу)</option>
+                                <option value="allow_write" class="text-green-700">ДОЗВОЛИТИ (Allow) Запис</option>
+                                <option value="deny_modify" class="text-red-700">ЗАБОРОНИТИ (Deny) Зміна</option>
+                                <option value="deny_read" class="text-red-700">ЗАБОРОНИТИ (Deny) Читання</option>
+                            </select>
                         </div>
+                        
+                        <button id="calculateButton" class="w-full bg-blue-700 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-800 transition duration-300 text-lg shadow-lg">
+                            Обчислити Ефективні Права
+                        </button>
                     </div>
 
-                    <div class="mb-4">
-                        <label for="directPermission" class="block text-sm font-medium text-neutral-900">Прямий дозвіл для "Petro" на файлі:</label>
-                        <select id="directPermission" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="none">(Немає)</option>
-                            <option value="deny_modify">ЗАБОРОНИТИ (Deny) Modify</option>
-                            <option value="allow_modify">ДОЗВОЛИТИ (Allow) Modify</option>
-                        </select>
-                    </div>
-
-                    <button id="calculateRights" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Розрахувати Ефективні Права</button>
-
-                    <div id="result" class="mt-6 p-4 rounded-lg bg-neutral-100 hidden">
-                        <h4 class="font-bold text-lg mb-2">Ефективні Права для "Petro":</h4>
-                        <p id="resultText" class="text-lg"></p>
-                        <p id="resultReason" class="text-sm text-neutral-600 mt-2"></p>
+                    <!-- Панель Результатів -->
+                    <div class="bg-neutral-50 p-6 rounded-lg border border-neutral-200">
+                        <h2 class="text-2xl font-bold mb-6">Результат (Ефективні Права):</h2>
+                        <div class="space-y-4">
+                            <div id="resultRead" class="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm">
+                                <span class="text-lg font-medium text-neutral-700">Читання (Read)</span>
+                                <span id="readStatus" class="text-lg font-bold text-neutral-400">?</span>
+                            </div>
+                            <div id="resultWrite" class="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm">
+                                <span class="text-lg font-medium text-neutral-700">Запис (Write)</span>
+                                <span id="writeStatus" class="text-lg font-bold text-neutral-400">?</span>
+                            </div>
+                            <div id="resultModify" class="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm">
+                                <span class="text-lg font-medium text-neutral-700">Зміна (Modify)</span>
+                                <span id="modifyStatus" class="text-lg font-bold text-neutral-400">?</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 pt-6 border-t border-neutral-300">
+                            <h3 class="font-bold text-neutral-800 mb-2">Обґрунтування:</h3>
+                            <p id="explanationText" class="text-neutral-600 text-sm h-24">Натисніть кнопку "Обчислити", щоб побачити, як система Windows приймає рішення.</p>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </section>
 
     </main>
     
-    <footer class="text-center py-8 mt-16 border-t border-neutral-200">
-        <p class="text-neutral-500">Інтерактивний конспект на основі матеріалів для 10-го класу.</p>
+    <footer class="text-center py-10 mt-16 border-t border-neutral-200 bg-white">
+        <p class="text-neutral-500">Інтерактивний додаток на основі академічних конспектів.</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
-            const ctx = document.getElementById('groupPowerChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Адміністратори (Administrators)', 'Оператори Настр. Мережі (Network Ops)', 'Користувачі (Users)', 'Гості (Guests)'],
-                    datasets: [{
-                        label: 'Рівень Повноважень',
-                        data: [100, 60, 20, 5],
-                        backgroundColor: [
-                            'rgba(220, 38, 38, 0.6)',
-                            'rgba(234, 179, 8, 0.6)',
-                            'rgba(37, 99, 235, 0.6)',
-                            'rgba(107, 114, 128, 0.6)'
-                        ],
-                        borderColor: [
-                            'rgba(220, 38, 38, 1)',
-                            'rgba(234, 179, 8, 1)',
-                            'rgba(37, 99, 235, 1)',
-                            'rgba(107, 114, 128, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.x !== null) {
-                                        label += context.parsed.x + '%';
-                                    }
-                                    return label;
+
+            // --- Логіка Діаграми (Chart.js) ---
+            const ctx = document.getElementById('powerChart');
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Адміністратори', 'Оператори Настр. Мережі', 'Користувачі', 'Гості'],
+                        datasets: [{
+                            label: 'Рівень Системних Повноважень',
+                            data: [100, 65, 25, 5],
+                            backgroundColor: [
+                                'rgba(220, 38, 38, 0.7)',  // red-600
+                                'rgba(234, 179, 8, 0.7)',  // yellow-500
+                                'rgba(37, 99, 235, 0.7)',  // blue-600
+                                'rgba(107, 114, 128, 0.7)' // gray-500
+                            ],
+                            borderColor: [
+                                'rgba(220, 38, 38, 1)',
+                                'rgba(234, 179, 8, 1)',
+                                'rgba(37, 99, 235, 1)',
+                                'rgba(107, 114, 128, 1)'
+                            ],
+                            borderWidth: 1.5
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => ` ${context.parsed.x}% Повноважень`
                                 }
                             }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%'
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: (value) => value + '%'
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
-            const calculateBtn = document.getElementById('calculateRights');
-            const resultDiv = document.getElementById('result');
-            const resultText = document.getElementById('resultText');
-            const resultReason = document.getElementById('resultReason');
+            // --- Логіка Симулятора ---
+            const calculateButton = document.getElementById('calculateButton');
+            const explanationText = document.getElementById('explanationText');
             
-            calculateBtn.addEventListener('click', () => {
+            const readStatus = document.getElementById('readStatus');
+            const writeStatus = document.getElementById('writeStatus');
+            const modifyStatus = document.getElementById('modifyStatus');
+            
+            const resultRead = document.getElementById('resultRead');
+            const resultWrite = document.getElementById('resultWrite');
+            const resultModify = document.getElementById('resultModify');
+
+            calculateButton.addEventListener('click', () => {
                 const isUser = document.getElementById('groupUsers').checked;
-                const isAdmin = document.getElementById('groupAdmins').checked;
+                const isManager = document.getElementById('groupManagers').checked;
                 const directPermission = document.getElementById('directPermission').value;
 
-                let allow = new Set();
-                let deny = new Set();
-                let reason = '';
+                let allow = { read: false, write: false, modify: false };
+                let deny = { read: false, write: false, modify: false };
+                let reason = [];
 
+                // 1. Акумуляція Дозволів (Allow)
                 if (isUser) {
-                    allow.add('Read');
+                    allow.read = true;
+                    reason.push("Allow 'Читання' (від 'Users').");
                 }
-                if (isAdmin) {
-                    allow.add('Read');
-                    allow.add('Modify');
-                    allow.add('Full Control');
+                if (isManager) {
+                    allow.read = true;
+                    allow.write = true;
+                    allow.modify = true;
+                    reason.push("Allow 'Зміна' (від 'Managers'), що включає читання та запис.");
+                }
+                if (directPermission === 'allow_write') {
+                    allow.write = true;
+                    reason.push("Allow 'Запис' (прямий дозвіл).");
                 }
 
-                if (directPermission === 'allow_modify') {
-                    allow.add('Modify');
-                } else if (directPermission === 'deny_modify') {
-                    deny.add('Modify');
+                // 2. Перевірка Заборон (Deny)
+                if (directPermission === 'deny_modify') {
+                    deny.modify = true;
+                    reason.push("Deny 'Зміна' (прямий дозвіл).");
                 }
+                 if (directPermission === 'deny_read') {
+                    deny.read = true;
+                    reason.push("Deny 'Читання' (прямий дозвіл).");
+                }
+
+
+                // 3. Обчислення Ефективних Прав
+                // "Зміна" (Modify) включає "Читання" (Read) і "Запис" (Write).
+                // Якщо "Зміна" заборонена, це також забороняє запис і видалення, але не обов'язково читання.
+                // Якщо "Читання" заборонено, це блокує все, оскільки "Зміна" вимагає "Читання".
+
+                let effective = {
+                    read: allow.read,
+                    write: allow.write,
+                    modify: allow.modify
+                };
+
+                if (deny.read) {
+                    effective.read = false;
+                    effective.write = false;
+                    effective.modify = false;
+                    reason.push("ФІНАЛЬНЕ РІШЕННЯ: Deny 'Читання' блокує всі інші дозволи, оскільки вони вимагають читання.");
+                } else if (deny.modify) {
+                    effective.write = false; // "Зміна" включає "Запис"
+                    effective.modify = false;
+                    reason.push("ФІНАЛЬНЕ РІШЕННЯ: Deny 'Зміна' переважає Allow від 'Managers' та 'Users'. Читання залишається дозволеним.");
+                } else {
+                     reason.push("ФІНАЛЬНЕ РІШЕННЯ: Дозволи сумуються, оскільки явних заборон не знайдено.");
+                }
+
+
+                // Оновлення UI
+                updateStatusUI(resultRead, readStatus, effective.read);
+                updateStatusUI(resultWrite, writeStatus, effective.write);
+                updateStatusUI(resultModify, modifyStatus, effective.modify);
                 
-                let canRead = allow.has('Read') || allow.has('Full Control');
-                let canModify = allow.has('Modify') || allow.has('Full Control');
-
-                if (deny.has('Modify')) {
-                    canModify = false;
-                    reason = 'Дозвіл "Modify" був явно заборонений (Deny). Заборона завжди має вищий пріоритет, навіть якщо група "Admins" надає "Full Control".';
-                } else if (directPermission === 'none' && !isAdmin && isUser) {
-                     reason = 'Petro має право "Read" від групи "Users", але не має права "Modify".';
-                } else if (isAdmin) {
-                    reason = 'Petro має "Full Control" від групи "Admins", що включає "Read" та "Modify".';
-                } else if (directPermission === 'allow_modify') {
-                    reason = 'Petro отримав "Read" від групи "Users" та "Modify" напряму.';
-                }
-
-                const readResult = canRead ? '<span class="text-green-600 font-bold">ДОЗВОЛЕНО</span>' : '<span class="text-red-600 font-bold">ЗАБОРОНЕНО</span>';
-                const modifyResult = canModify ? '<span class="text-green-600 font-bold">ДОЗВОЛЕНО</span>' : '<span class="text-red-600 font-bold">ЗАБОРОНЕНО</span>';
-
-                resultText.innerHTML = `<strong>Читання (Read):</strong> ${readResult} <br> <strong>Зміна (Modify):</strong> ${modifyResult}`;
-                resultReason.textContent = reason;
-                resultDiv.classList.remove('hidden');
+                explanationText.textContent = reason.join(' ');
             });
 
+            function updateStatusUI(element, statusText, isAllowed) {
+                statusText.textContent = isAllowed ? 'ДОЗВОЛЕНО' : 'ЗАБОРОНЕНО';
+                statusText.className = isAllowed ? 'text-lg font-bold text-green-600' : 'text-lg font-bold text-red-600';
+                element.className = isAllowed ? 'flex justify-between items-center p-4 bg-green-50 rounded-lg shadow-sm border border-green-200' : 'flex justify-between items-center p-4 bg-red-50 rounded-lg shadow-sm border border-red-200';
+            }
+            
+            // --- Логіка Навігації (Active Link Scrolling) ---
             const navLinks = document.querySelectorAll('.nav-link');
             const sections = document.querySelectorAll('section');
 
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.3
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        navLinks.forEach(link => {
-                            link.classList.remove('active');
-                            if (link.getAttribute('href') === `#${entry.target.id}`) {
-                                link.classList.add('active');
-                            }
-                        });
+            function onScroll() {
+                let current = '';
+                sections.forEach((section) => {
+                    const sectionTop = section.offsetTop;
+                    if (window.scrollY >= sectionTop - 120) {
+                        current = section.getAttribute('id');
                     }
                 });
-            }, observerOptions);
 
-            sections.forEach(section => {
-                observer.observe(section);
-            });
+                navLinks.forEach((link) => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', onScroll);
+            onScroll(); // Викликати при завантаженні
         });
     </script>
 </body>
