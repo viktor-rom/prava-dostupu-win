@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# String Lab: Інтерактивна Лабораторія</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* Warm neutral - Stone 100 */
+            color: #1c1917; /* Stone 900 */
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Chart Container Styling per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar for code blocks */
+        .custom-scroll::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        /* Interactive Element Transitions */
+        .interactive-box {
+            transition: all 0.3s ease;
+        }
+        .interactive-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone) with IDE Accents (Blue/Green/Red) -->
+    <!-- Application Structure Plan: 
+         1. Header: Context setting.
+         2. The Splitter (Visualizing Split): Interactive input to demonstrate string arrays and RemoveEmptyEntries.
+         3. The Trimmer (Visualizing Trim): Visualizing whitespace removal.
+         4. The Converter (Parse vs TryParse): A simulation machine comparing the two methods with a Chart.js visualization of "Safety".
+         5. The Safety Net (Try-Catch): A logic flow simulation.
+         6. Best Practices Checklist: Interactive review.
+         Rationale: Logic-based topics require "Input -> Process -> Output" visualization to be understood. 
+    -->
+    <!-- Visualization & Content Choices:
+         - Split: Dynamic HTML grid generation to show array elements.
+         - Trim: CSS-styled spans to highlight invisible whitespace.
+         - Parse: Interactive form simulation + Chart.js (Doughnut) to visually represent "Crash Risk" vs "Handled Errors".
+         - Code: Styled pre/code blocks that react to user input.
+         - NO SVG/Mermaid used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 min-h-screen">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-stone-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl">💻</span>
+                <div>
+                    <h1 class="text-xl font-bold text-stone-800">C# Лабораторія даних</h1>
+                    <p class="text-xs text-stone-500 uppercase tracking-wider">Для 11 класу: Рядки та Винятки</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium text-stone-600">
+                <a href="#split-section" class="hover:text-blue-600 transition">Split</a>
+                <a href="#trim-section" class="hover:text-blue-600 transition">Trim</a>
+                <a href="#parse-section" class="hover:text-blue-600 transition">Parse/TryParse</a>
+                <a href="#try-catch-section" class="hover:text-blue-600 transition">Try-Catch</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-10 space-y-16">
+
+        <!-- INTRO SECTION -->
+        <section class="text-center space-y-6 max-w-3xl mx-auto">
+            <h2 class="text-4xl font-extrabold text-stone-900 tracking-tight">Від тексту до даних</h2>
+            <p class="text-lg text-stone-600 leading-relaxed">
+                У програмі на C# все, що вводить користувач — це спочатку просто текст (<code>string</code>). 
+                Щоб компілятор зрозумів ці дані, їх потрібно розділити на частини, очистити від помилок та правильно перетворити на потрібні дані. 
+                Використовуйте цю інтерактивну панель, щоб побачити, як це працює.
+            </p>
+            <div class="flex justify-center gap-4">
+                <div class="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">String Manipulation</div>
+                <div class="px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-semibold">Exception Handling</div>
+            </div>
+        </section>
+
+<section id="split-section" class="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+            <div class="p-8 border-b border-stone-100">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-bold">C#</span>
+                    <h3 class="text-2xl font-bold text-stone-800">Зразок програмного тексту №1</h3>
+                </div>
+                <p><pre><code>
+	<font color="#400080">using System;
+	class Program
+	{
+		static void Main()
+		{
+			Console.Write("Введіть ваше ім'я, вік та місто через пробіл: ");
+			string input = Console.ReadLine();
+			string[] parts = input.Split(' ');
+			string name = parts[0];
+			int age = int.Parse(parts[1]);
+			string city = parts[2];
+			Console.WriteLine("Ім'я: {0}, Вік: {1}, Місто: {2}", name, age, city);
+		}
+	}</font></code></pre>
+<p class="text-stone-600 mb-6">Програма розділяє введений рядок на частини за допомогою методу <code><b>Split</b></code> і потім виводить ці значення.</p></p>
+            </div>
+        </section>
+        
+<section id="split-section" class="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+            <div class="p-8 border-b border-stone-100">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-bold">C#</span>
+                    <h3 class="text-2xl font-bold text-stone-800">Зразок програмного тексту №2</h3>
+                </div>
+<p class="text-stone-600 mb-6"> &#10148; В якості розділових знаків в рядку можна використовувати будь-який символ. Хай це буде пробіл.
+Нехай користувач помилково увів зайві пробіли (розділові знаки)
+	<br /> &#10148; В такій ситуації метод <font color="#400080"><strong>Split(' ')</strong></font> розділить рядок на більшу кількість частин, деякі з яких будуть
+порожніми. Щоб уникнути цього, можна використовувати перезавантаження методу <font color="#400080"><strong>Split</strong></font> і вказати опцію <font color="#400080"><code>StringSplitOptions.RemoveEmptyEntries</code></font>, яка видаляє пусті елементи з результату.
+</p><p><pre><code><font color="#400080">
+	using System;
+	class Program
+	{
+		static void Main()
+		{
+			Console.Write("Введіть ваше ім'я, вік та місто через пробіл: ");
+			string input = Console.ReadLine();
+			string[] parts = input.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+			string name = parts[0];
+			int age = int.Parse(parts[1]);
+			string city = parts[2];
+			Console.WriteLine("Ім'я: {0}, Вік: {1}, Місто: {2}", name, age, city);
+		}
+	}	
+	</font></code></pre></p>
+<p class="text-stone-600 mb-6">	 Розділення рядка: <font color="#400080"><strong>Метод Split</strong></font><br />
+Метод Split розрізає один довгий рядок на масив підрядків за певним розділювачем.<br />
+ &#10148;  Класичний підхід (C# 5.0): <font face="Consolas" color="#400080">input.Split(new char[] {';'})</font><br />
+ &#10148;  Тут <font face="Consolas" color="#400080">new char[]</font> — це створення масиву символів "на льоту". Метод очікує масив, бо ви можете захотіти розділити рядок за кількома знаками одночасно (наприклад, ; та ,).<br />
+<em><strong>Механізм роботи:</strong></em> Програма сканує рядок, знаходить розділювач, "відрізає" текст до нього і кладе у комірку масиву.<br />
+<strong>Порожні записи:</strong> Якщо користувач введе два розділювачі поспіль (;;), без додаткових налаштувань програма створить порожній рядок "". 
+Щоб цього уникнути, використовують прапорець <font face="Consolas" color="#400080"> StringSplitOptions.RemoveEmptyEntries.</font> </p>
+<p class="text-stone-600 mb-6">Треба зауважити, що <font face="Consolas" color="#400080">new</font> — це оператор створення об'єкта</p>
+<pre>
+Коли ми пишемо <font face="Consolas" color="#400080">new char[]</font>, ми даємо три чіткі команди:
+	1. <strong>Замовлення пам'яті:</strong> "Система, мені потрібна ділянка пам'яті для зберігання символів".
+	2. <strong>Визначення типу:</strong> "Це буде не просто текст, а саме масив символів (char[])".
+	3. <strong>Ініціалізація:</strong> За допомогою дужок { ' ' } вказуємо, що туди вкладеться ось цей пробіл".</pre>
+            </div>
+        </section>
+
+<section id="split-section" class="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+            <div class="p-8 border-b border-stone-100">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-bold">C#</span>
+                    <h3 class="text-2xl font-bold text-stone-800">Зразок програмного тексту №3</h3>
+                </div>
+                <pre><code><font color="#400080">
+	using System;
+	class Program
+	{
+		static void Main()
+		{
+			Console.Write("Введіть ваше ім'я, вік та місто через ';': ");
+			string input = Console.ReadLine();
+			string[] parts = input.Split(';');
+			if (parts.Length != 3)
+			{
+				Console.WriteLine("Помилка: Введіть дані у форматі 'Ім'я;Вік;Місто'");
+				return;
+			}
+			string name = parts[0].Trim();
+			int vik;
+			try
+			{
+				vik = int.Parse(parts[1].Trim());
+			}
+				catch (FormatException)
+			{
+				Console.WriteLine("Помилка: Неправильний формат віку. Будь ласка, введіть число.");
+				return;
+			}
+			string city = parts[2].Trim();
+			Console.WriteLine("Ім'я: {0}, Вік: {1}, Місто: {2}", name, age, city);
+		}
+	}</font></code></pre>
+            </div>
+        </section>
+        
+        <!-- SECTION 1: SPLIT -->
+        <section id="split-section" class="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+            <div class="p-8 border-b border-stone-100">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-bold">1</span>
+                    <h3 class="text-2xl font-bold text-stone-800">Метод Split: Розрізання рядка</h3>
+                </div>
+                <p class="text-stone-600 mb-6">
+                    Метод <code><b>Split</b></code> перетворює один довгий рядок на масив підрядків.  
+                    Тут ви можете спробувати різні розділювачі та побачити, як працює опція <code><font color="#004080"><strong>RemoveEmptyEntries</strong></font></code>, 
+                    яка відкидає порожні частини при подвійних пробілах.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Controls -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-stone-700 mb-2">Вхідний рядок (Console.ReadLine)</label>
+                            <input type="text" id="splitInput" value="Генадій;  25;; Київ" 
+                                class="w-full p-4 border border-stone-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg bg-stone-50"
+                                placeholder="Введіть текст...">
+                            <p class="text-xs text-stone-500 mt-2">Спробуйте додати декілька пробілів або крапок з комою підряд.</p>
+                        </div>
+
+                        <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+                            <label class="block text-sm font-semibold text-stone-700 mb-2">Налаштування Split</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="splitSpace" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                                    <span class="text-sm">Пробіл (' ')</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="splitSemi" checked class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                                    <span class="text-sm">Крапка з комою (';')</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="splitComma" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                                    <span class="text-sm">Кома (',')</span>
+                                </label>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-stone-200">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                                        <input type="checkbox" id="removeEmpty" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-stone-300 checked:right-0 checked:border-blue-600"/>
+                                        <label for="removeEmpty" class="toggle-label block overflow-hidden h-6 rounded-full bg-stone-300 cursor-pointer"></label>
+                                    </div>
+                                    <span class="text-sm font-medium text-stone-800">RemoveEmptyEntries</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visualization -->
+                    <div class="bg-slate-900 rounded-xl p-6 text-slate-100 flex flex-col h-full shadow-inner custom-scroll overflow-y-auto">
+                        <div class="text-xs text-slate-400 mb-2 font-mono">// C# Code Representation</div>
+                        <div class="font-mono text-sm mb-6">
+                            <span class="text-blue-400">string</span>[] parts = input.<span class="text-yellow-300">Split</span>(<br>
+                            &nbsp;&nbsp;<span class="text-blue-400">new</span> <span class="text-blue-400">char</span>[] { <span id="codeDelimiters" class="text-orange-300"></span> },<br>
+                            &nbsp;&nbsp;<span id="codeOptions" class="text-purple-400">None</span><br>
+                            );
+                        </div>
+                        
+                        <div class="text-xs text-slate-400 mb-2 font-mono">// Result: parts[] Array</div>
+                        <div id="splitResult" class="flex flex-wrap gap-2 content-start flex-grow">
+                            <!-- Array items generated here -->
+                        </div>
+                        <div id="arrayCount" class="mt-4 text-xs text-right text-slate-500">Length: 0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: TRIM -->
+        <section id="trim-section" class="bg-white rounded-2xl shadow-lg border border-stone-200">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-purple-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-bold">2</span>
+                    <h3 class="text-2xl font-bold text-stone-800">Метод Trim: Очищення</h3>
+                </div>
+                <p class="text-stone-600 mb-6">
+                    <code>Trim()</code> — це очищувач для рядків. Він видаляє "невидимі" пробіли на початку та в кінці. 
+                    Це критично важливо перед перетворенням тексту в числа, адже <code>" 25"</code> для комп'ютера — це не число.
+                </p>
+
+                <div class="bg-stone-100 p-6 rounded-xl border border-stone-200 flex flex-col items-center">
+                    <div class="mb-4 text-sm font-semibold text-stone-500 uppercase">Інтерактивна візуалізація</div>
+                    
+                    <div class="relative w-full max-w-md group">
+                        <!-- Visual representation of the string structure -->
+                        <div id="trimVisualizer" class="flex text-2xl font-mono bg-white border-2 border-dashed border-stone-300 rounded-lg overflow-hidden h-16 items-center justify-center">
+                            <!-- JS injects spans here -->
+                        </div>
+                        <div class="absolute -bottom-6 left-0 text-xs text-stone-400">Start</div>
+                        <div class="absolute -bottom-6 right-0 text-xs text-stone-400">End</div>
+                    </div>
+
+                    <div class="mt-8 flex gap-4">
+                        <input type="text" id="trimInput" value="  25  " class="p-2 border rounded text-center w-32 font-mono" placeholder="Input">
+                        <button id="btnTrim" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition transform active:scale-95">
+                            Застосувати .Trim()
+                        </button>
+                        <button id="btnResetTrim" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold rounded-lg transition">
+                            Скинути
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6 text-sm text-stone-600">
+                        Результат для коду: <code>int.Parse(val)</code>
+                        <div id="trimParseResult" class="mt-2 font-bold text-lg">---</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PARSE VS TRYPARSE -->
+        <section id="parse-section" class="bg-white rounded-2xl shadow-lg border border-stone-200">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-green-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-bold">3</span>
+                    <h3 class="text-2xl font-bold text-stone-800">Parse проти TryParse</h3>
+                </div>
+                <div class="mb-6 grid md:grid-cols-2 gap-6">
+                    <div class="prose text-stone-600">
+                        <p>
+                            Оскільки консоль повертає <code>string</code>, нам треба перетворити його на <code>int</code>.
+                            Тут є два шляхи: небезпечний та безпечний. Введіть різні дані (числа, літери, порожні рядки) та натисніть "Виконати", щоб побачити різницю.
+                        </p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="parseChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Method A: Parse -->
+                    <div class="border-2 border-red-100 bg-red-50 rounded-xl p-6 relative overflow-hidden interactive-box">
+                        <div class="absolute top-0 right-0 bg-red-200 text-red-800 text-xs font-bold px-2 py-1 rounded-bl">Небезпечний</div>
+                        <h4 class="font-bold text-red-800 mb-2 font-mono">int.Parse()</h4>
+                        <div class="space-y-3">
+                            <input type="text" id="inputParse" placeholder="Введіть число..." class="w-full p-2 border border-red-200 rounded">
+                            <button onclick="runParse()" class="w-full py-2 bg-red-600 text-white rounded font-semibold hover:bg-red-700 transition">Спробувати Parse</button>
+                        </div>
+                        <div id="resultParse" class="mt-4 p-3 bg-white border border-red-100 rounded min-h-[60px] text-sm break-words">
+                            <span class="text-stone-400 italic">Очікування...</span>
+                        </div>
+                    </div>
+
+                    <!-- Method B: TryParse -->
+                    <div class="border-2 border-green-100 bg-green-50 rounded-xl p-6 relative overflow-hidden interactive-box">
+                        <div class="absolute top-0 right-0 bg-green-200 text-green-800 text-xs font-bold px-2 py-1 rounded-bl">Рекомендовано</div>
+                        <h4 class="font-bold text-green-800 mb-2 font-mono">int.TryParse()</h4>
+                        <div class="space-y-3">
+                            <input type="text" id="inputTryParse" placeholder="Введіть число..." class="w-full p-2 border border-green-200 rounded">
+                            <button onclick="runTryParse()" class="w-full py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700 transition">Спробувати TryParse</button>
+                        </div>
+                        <div id="resultTryParse" class="mt-4 p-3 bg-white border border-green-100 rounded min-h-[60px] text-sm">
+                            <span class="text-stone-400 italic">Очікування...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: TRY-CATCH LOGIC -->
+        <section id="try-catch-section" class="bg-slate-900 text-slate-100 rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="bg-yellow-500 text-black w-8 h-8 flex items-center justify-center rounded-lg font-bold">4</span>
+                    <h3 class="text-2xl font-bold">Механізм Try-Catch</h3>
+                </div>
+                <p class="text-slate-300 mb-8 max-w-2xl">
+                    Якщо в тексті програми використовується <code><font color="#ffff80">int.Parse</font></code>, тоді потрібно використовувати перехоплювачі можливих помилок. 
+                    Вони потрібні для тих випадків, коли не відомо як відпрацює програма і де можливі помилки. Це захист від "падіння" програми.
+                    Натисніть на кнопку симуляції, щоб побачити, як програма перестрибує помилки.
+                </p>
+
+                <div class="grid lg:grid-cols-2 gap-8 items-start">
+                    <!-- Code Visualization -->
+                    <div class="font-mono text-sm bg-slate-950 p-6 rounded-xl border border-slate-800 shadow-2xl relative">
+                        <div id="step1" class="p-2 rounded transition-colors duration-500">
+                            <span class="text-purple-400">try</span> {
+                        </div>
+                        <div id="step2" class="p-2 pl-6 rounded transition-colors duration-500 border-l-2 border-transparent">
+                            <span class="text-stone-500">// Спроба перетворити</span><br>
+                            <span class="text-blue-400">int</span> vik = <span class="text-yellow-300">int.Parse</span>(input);
+                        </div>
+                        <div id="step3" class="p-2 pl-6 rounded transition-colors duration-500 border-l-2 border-transparent">
+                            <span class="text-stone-500">// Успіх</span><br>
+                            Console.WriteLine(vik);
+                        </div>
+                        <div id="step4" class="p-2 rounded transition-colors duration-500">
+                            } <span class="text-purple-400">catch</span> (<span class="text-teal-300">FormatException</span>) {
+                        </div>
+                        <div id="step5" class="p-2 pl-6 rounded transition-colors duration-500 border-l-2 border-transparent">
+                            <span class="text-stone-500">// Рятувальна сітка</span><br>
+                            Console.WriteLine(<span class="text-orange-300">"Помилка!"</span>);
+                        </div>
+                        <div class="p-2">}</div>
+                    </div>
+
+                    <!-- Controls & Status -->
+                    <div class="flex flex-col justify-center h-full space-y-6">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-slate-400">Тестове значення:</label>
+                            <div class="flex gap-2">
+                                <button onclick="simulateTryCatch('25')" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold transition">
+                                    Вхід: "25" (ОК)
+                                </button>
+                                <button onclick="simulateTryCatch('abc')" class="flex-1 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition">
+                                    Вхід: "abc" (Помилка)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="flowStatus" class="bg-slate-800 p-4 rounded-lg text-center min-h-[80px] flex items-center justify-center border border-slate-700">
+                            <span class="text-slate-400">Оберіть сценарій для запуску візуалізації...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 mt-12 text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <p>&copy; C# Освітня Лабораторія. Створено на основі навчального конспекту.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- SECTION 1: SPLIT LOGIC ---
+        const splitInput = document.getElementById('splitInput');
+        const splitSpace = document.getElementById('splitSpace');
+        const splitSemi = document.getElementById('splitSemi');
+        const splitComma = document.getElementById('splitComma');
+        const removeEmpty = document.getElementById('removeEmpty');
+        const splitResult = document.getElementById('splitResult');
+        const arrayCount = document.getElementById('arrayCount');
+        const codeDelimiters = document.getElementById('codeDelimiters');
+        const codeOptions = document.getElementById('codeOptions');
+
+        function updateSplit() {
+            const text = splitInput.value;
+            const delimiters = [];
+            const delimiterDisplay = [];
+            
+            if (splitSpace.checked) { delimiters.push(' '); delimiterDisplay.push("' '"); }
+            if (splitSemi.checked) { delimiters.push(';'); delimiterDisplay.push("';'"); }
+            if (splitComma.checked) { delimiters.push(','); delimiterDisplay.push("','"); }
+
+            // Logic mirroring C# Split
+            let parts = [];
+            if (delimiters.length > 0) {
+                // Regex construction for JS to mimic C# char[] split
+                // Escape special regex characters
+                const escapedDelimiters = delimiters.map(d => d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                const regex = new RegExp(`[${escapedDelimiters.join('')}]`);
+                parts = text.split(regex);
+            } else {
+                parts = [text]; // No split if no delimiters
+            }
+
+            // Mimic StringSplitOptions.RemoveEmptyEntries
+            if (removeEmpty.checked) {
+                parts = parts.filter(p => p !== "");
+                codeOptions.textContent = "StringSplitOptions.RemoveEmptyEntries";
+                codeOptions.className = "text-purple-400";
+            } else {
+                codeOptions.textContent = "StringSplitOptions.None";
+                codeOptions.className = "text-stone-500";
+            }
+
+            // Update Visualization
+            codeDelimiters.textContent = delimiterDisplay.join(', ');
+            splitResult.innerHTML = '';
+            
+            parts.forEach((part, index) => {
+                const badge = document.createElement('div');
+                badge.className = 'bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm font-mono flex items-center gap-2 animate-pulse-once';
+                badge.style.animation = 'none';
+                badge.offsetHeight; /* trigger reflow */
+                badge.style.animation = null; 
+                
+                // Show index
+                const idxSpan = document.createElement('span');
+                idxSpan.className = 'text-slate-500 text-xs';
+                idxSpan.textContent = `[${index}]`;
+
+                // Show value (visualize empty string if needed)
+                const valSpan = document.createElement('span');
+                if (part === "") {
+                    valSpan.className = 'text-red-400 italic';
+                    valSpan.textContent = '"" (Empty)';
+                } else {
+                    valSpan.className = 'text-green-300';
+                    valSpan.textContent = `"${part}"`;
+                }
+
+                badge.appendChild(idxSpan);
+                badge.appendChild(valSpan);
+                splitResult.appendChild(badge);
+            });
+
+            arrayCount.textContent = `Length: ${parts.length}`;
+        }
+
+        // Event Listeners for Split
+        [splitInput, splitSpace, splitSemi, splitComma, removeEmpty].forEach(el => {
+            el.addEventListener('input', updateSplit);
+            el.addEventListener('change', updateSplit);
+        });
+        updateSplit(); // Init
+
+        // --- SECTION 2: TRIM LOGIC ---
+        const trimInput = document.getElementById('trimInput');
+        const trimVisualizer = document.getElementById('trimVisualizer');
+        const btnTrim = document.getElementById('btnTrim');
+        const btnResetTrim = document.getElementById('btnResetTrim');
+        const trimParseResult = document.getElementById('trimParseResult');
+
+        function renderTrimVisual(str) {
+            trimVisualizer.innerHTML = '';
+            // Detect leading spaces
+            const leadingSpaces = str.match(/^\s*/)[0].length;
+            // Detect trailing spaces
+            const trailingSpaces = str.match(/\s*$/)[0].length;
+            const contentLen = str.length - leadingSpaces - trailingSpaces;
+            const contentStart = leadingSpaces;
+            
+            // Render Leading
+            if (leadingSpaces > 0) {
+                const sp = document.createElement('span');
+                sp.className = 'bg-red-200 text-red-500 flex h-full items-center justify-center';
+                sp.style.width = `${leadingSpaces * 15}px`;
+                sp.textContent = '␣'.repeat(leadingSpaces);
+                sp.title = "Leading Whitespace";
+                trimVisualizer.appendChild(sp);
+            }
+
+            // Render Content
+            if (contentLen > 0) {
+                const ct = document.createElement('span');
+                ct.className = 'bg-green-100 text-stone-800 flex h-full items-center justify-center px-2';
+                ct.textContent = str.substring(contentStart, contentStart + contentLen);
+                trimVisualizer.appendChild(ct);
+            }
+
+            // Render Trailing
+            if (trailingSpaces > 0 && str.trim().length < str.length) { // Check if not purely whitespace
+                 const sp = document.createElement('span');
+                sp.className = 'bg-red-200 text-red-500 flex h-full items-center justify-center';
+                sp.style.width = `${trailingSpaces * 15}px`;
+                sp.textContent = '␣'.repeat(trailingSpaces);
+                sp.title = "Trailing Whitespace";
+                trimVisualizer.appendChild(sp);
+            } else if (str.trim().length === 0 && str.length > 0) {
+                 // All whitespace handled by leading logic usually, but edge case:
+            }
+
+            // Update Simulated Parse Result
+            const trimmed = str.trim();
+            const parsed = parseInt(trimmed);
+            if (!isNaN(parsed) && trimmed !== "") {
+                trimParseResult.innerHTML = `<span class="text-green-600">Успіх: ${parsed} (int)</span>`;
+            } else {
+                 trimParseResult.innerHTML = `<span class="text-red-500">Помилка: "${trimmed}" не число</span>`;
+            }
+        }
+
+        trimInput.addEventListener('input', (e) => renderTrimVisual(e.target.value));
+        
+        btnTrim.addEventListener('click', () => {
+            trimInput.value = trimInput.value.trim();
+            renderTrimVisual(trimInput.value);
+        });
+
+        btnResetTrim.addEventListener('click', () => {
+            trimInput.value = "  25  ";
+            renderTrimVisual(trimInput.value);
+        });
+
+        renderTrimVisual(trimInput.value); // Init
+
+
+        // --- SECTION 3: PARSE SIMULATION & CHART ---
+        
+        // Chart Data State
+        const chartData = {
+            success: 0,
+            exception: 0,
+            handled: 0
+        };
+
+        let myChart;
+
+        function initChart() {
+            const ctx = document.getElementById('parseChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Успіх (Good)', 'Критична помилка (Crash)', 'Оброблено (Safe)'],
+                    datasets: [{
+                        data: [1, 0, 0], // Initial dummy data
+                        backgroundColor: ['#22c55e', '#ef4444', '#eab308'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'Статистика виконання операцій' }
+                    }
+                }
+            });
+        }
+
+        function updateChart(type) {
+            if (type === 'success') chartData.success++;
+            if (type === 'crash') chartData.exception++;
+            if (type === 'safe') chartData.handled++;
+
+            myChart.data.datasets[0].data = [chartData.success, chartData.exception, chartData.handled];
+            myChart.update();
+        }
+
+        function runParse() {
+            const val = document.getElementById('inputParse').value;
+            const resBox = document.getElementById('resultParse');
+            
+            // Simulate C# int.Parse
+            // In JS, parseInt is lenient, so we must be stricter to mimic C# Parse
+            const isStrictInteger = /^-?\d+$/.test(val.trim());
+            
+            if (isStrictInteger) {
+                resBox.innerHTML = `<div class="text-green-700 font-bold">✅ Результат: ${parseInt(val)}</div>`;
+                resBox.className = "mt-4 p-3 bg-green-50 border border-green-200 rounded min-h-[60px] text-sm";
+                updateChart('success');
+            } else {
+                // Mimic Exception
+                resBox.innerHTML = `<div class="text-red-700 font-bold">❌ Unhandled Exception: FormatException</div><div class="text-xs text-red-600">Програма аварійно зупинилась!</div>`;
+                resBox.className = "mt-4 p-3 bg-red-100 border border-red-300 rounded min-h-[60px] text-sm animate-pulse";
+                updateChart('crash');
+            }
+        }
+
+        function runTryParse() {
+            const val = document.getElementById('inputTryParse').value;
+            const resBox = document.getElementById('resultTryParse');
+            
+            const isStrictInteger = /^-?\d+$/.test(val.trim());
+
+            if (isStrictInteger) {
+                 resBox.innerHTML = `<div class="text-green-700 font-bold">✅ true. out result: ${parseInt(val)}</div>`;
+                 updateChart('success');
+            } else {
+                 resBox.innerHTML = `<div class="text-yellow-700 font-bold">⚠️ false. out result: 0</div><div class="text-xs text-yellow-600">Програма продовжила роботу.</div>`;
+                 updateChart('safe');
+            }
+        }
+
+        // --- SECTION 4: TRY-CATCH FLOW ---
+        function simulateTryCatch(inputValue) {
+            const status = document.getElementById('flowStatus');
+            const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
+            
+            // Reset styles
+            steps.forEach(id => {
+                document.getElementById(id).className = document.getElementById(id).className.replace('bg-blue-900', '').replace('bg-red-900', '');
+                document.getElementById(id).style.opacity = '0.3';
+            });
+
+            // Logic
+            const isError = !/^-?\d+$/.test(inputValue);
+            let sequence = [];
+
+            if (!isError) {
+                sequence = [
+                    {id: 'step1', text: "Вхід у блок try...", delay: 0},
+                    {id: 'step2', text: `Парсинг числа "${inputValue}"...`, delay: 800},
+                    {id: 'step3', text: "Успіх! Вивід результату.", delay: 1600}
+                ];
+            } else {
+                sequence = [
+                    {id: 'step1', text: "Вхід у блок try...", delay: 0},
+                    {id: 'step2', text: `Спроба парсингу "${inputValue}"... ПОМИЛКА!`, delay: 800, error: true},
+                    {id: 'step4', text: "Перехоплення FormatException...", delay: 1600},
+                    {id: 'step5', text: "Обробка помилки. Програма жива!", delay: 2400}
+                ];
+            }
+
+            // Animation Loop
+            sequence.forEach((item, index) => {
+                setTimeout(() => {
+                    // Reset previous highligts if moving to next, but keep trail slightly visible? No, focused highlight.
+                    steps.forEach(s => document.getElementById(s).style.opacity = '0.3');
+                    
+                    const el = document.getElementById(item.id);
+                    el.style.opacity = '1';
+                    
+                    if (item.error) {
+                         el.classList.add('bg-red-900', 'bg-opacity-50');
+                         status.innerHTML = `<span class="text-red-400 font-mono">⚠️ Exception Throw at line 2</span>`;
+                    } else {
+                         el.classList.add('bg-blue-900', 'bg-opacity-50');
+                         status.innerHTML = `<span class="text-green-400 font-mono">> ${item.text}</span>`;
+                    }
+
+                    if (index === sequence.length - 1) {
+                         setTimeout(() => {
+                            status.innerHTML += `<br><span class="text-white font-bold">Готово.</span>`;
+                         }, 800);
+                    }
+
+                }, item.delay);
+            });
+        }
+
+        // Initialize things
+        window.addEventListener('load', () => {
+            initChart();
+        });
+
+    </script>
+</body>
+</html>
