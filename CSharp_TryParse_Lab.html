@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторія C#: Безпечне перетворення типів</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #334155; /* Slate 700 */
+        }
+
+        h1, h2, h3, h4 {
+            color: #0f172a; /* Slate 900 */
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Chart Container Styling - Mandatory Requirement */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* max-w-xl equivalent */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* h-[300px] */
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Interactive Element States */
+        .interactive-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+
+        .code-block {
+            background-color: #1e293b; /* Slate 800 */
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+
+        /* Logic Flow Connectors using CSS borders */
+        .logic-connector {
+            height: 2px;
+            background-color: #cbd5e1;
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+        
+        .logic-connector.active {
+            background-color: #10b981; /* Emerald 500 */
+        }
+        
+        .logic-connector.broken {
+            background-color: #ef4444; /* Red 500 */
+        }
+    </style>
+    <!-- Chosen Palette: Slate (Professional/Academic) with Emerald (Success), Rose (Error), and Indigo (Action) accents. -->
+    <!-- Application Structure Plan:
+         1. Header: Context and Title.
+         2. Hero/Intro: Explains the core risk of type conversion.
+         3. Module 1: The Basics (Parse vs TryParse): Interactive simulation of single variable conversion with "Crash" visualization.
+         4. Module 2: Multiple Checks (Advanced): Visualizing the Short-Circuit (&&) logic with a chain of inputs.
+         5. Module 3: Cyclic Validation (Do-While): A loop simulator showing how the program "returns" to the start.
+         6. Footer: Summary.
+         Why this structure? It follows the pedagogical progression of the cheat sheet: Simple -> Compound Logic -> Control Flow.
+    -->
+    <!-- Visualization & Content Choices:
+         - Module 1: Bar chart comparing "Crash Probability" and simulated console output.
+         - Module 2: A horizontal flow diagram (HTML/Flexbox) representing the && chain. If one fails, the line turns red and stops (short-circuit).
+         - Module 3: A circular process visualization using a Doughnut chart to track attempts vs success.
+         - NO SVG/Mermaid used. Canvas used for Charts. HTML/CSS for diagrams.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🛡️</span>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">C# SafeType Lab</h1>
+                    <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Шпаргалка: Безпечне перетворення</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
+                <a href="#basics" class="hover:text-indigo-600 transition">TryParse</a>
+                <a href="#advanced" class="hover:text-indigo-600 transition">Множинна перевірка</a>
+                <a href="#cycle" class="hover:text-indigo-600 transition">Do-While Цикл</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full max-w-5xl mx-auto px-4 py-8 space-y-12">
+
+        <!-- Intro -->
+        <section class="text-center max-w-3xl mx-auto space-y-4">
+            <h2 class="text-3xl font-bold text-slate-800">Мистецтво безпечного коду</h2>
+            <p class="text-lg text-slate-600 leading-relaxed">
+                У мові C# перетворення рядка на число є операцією з високим ризиком. 
+                Ця інтерактивна лабораторія демонструє, чому <code>int.TryParse</code> є стандартом для створення відмовостійких програм, 
+                та як ефективно перевіряти складні набори даних.
+            </p>
+        </section>
+
+        <!-- MODULE 1: BASICS -->
+        <section id="basics" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-8 border-b border-slate-100">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-indigo-100 text-indigo-700 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm">1</span>
+                    <h3 class="text-2xl font-bold">Базова конструкція TryParse</h3>
+                </div>
+                <p class="text-slate-600 mb-6 max-w-4xl">
+                    Метод <code>int.Parse</code> ініціює критичну помилку (виняток) при некоректних даних, що зупиняє програму. 
+                    Натомість <code>TryParse</code> повертає булеве значення (<code>true</code>/<code>false</code>), дозволяючи програмі продовжити роботу.
+                    Спробуйте ввести некоректні дані (наприклад, текст) нижче, щоб побачити різницю.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <!-- Interactive Input -->
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Введіть число (Input):</label>
+                            <input type="text" id="basicInput" placeholder="напр. 1024 або текст" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+                            
+                            <div class="flex gap-4 mt-4">
+                                <button onclick="simulateParse()" class="flex-1 py-2 px-4 bg-rose-100 text-rose-700 font-bold rounded-lg hover:bg-rose-200 transition border border-rose-200">
+                                    int.Parse()
+                                </button>
+                                <button onclick="simulateTryParse()" class="flex-1 py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-lg hover:bg-emerald-200 transition border border-emerald-200">
+                                    int.TryParse()
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Console Output Simulation -->
+                        <div class="code-block h-32 flex flex-col justify-center" id="consoleOutput1">
+                            <span class="text-slate-500 italic text-center">// Очікування виконання команди...</span>
+                        </div>
+                    </div>
+
+                    <!-- Visualization -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wide text-center">Статус програми</h4>
+                        <div class="chart-container">
+                            <canvas id="basicsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2: MULTIPLE CHECKS (ADVANCED) -->
+        <section id="advanced" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-8 border-b border-slate-100">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-indigo-100 text-indigo-700 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm">2</span>
+                    <h3 class="text-2xl font-bold">Множинна перевірка (Логічне "І")</h3>
+                </div>
+                <p class="text-slate-600 mb-6">
+                    При отриманні набору параметрів (наприклад, 5 значень з одного рядка) використання вкладених <code>if</code> є неефективним.
+                    Найкращий спосіб — використати оператор <code>&&</code> (І). Завдяки "короткому замиканню" (short-circuit evaluation), C# зупинить перевірку на першому ж помилковому значенні.
+                </p>
+
+                <!-- Visualization of Short Circuit -->
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-8 overflow-x-auto">
+                    <h4 class="text-sm font-bold text-slate-700 mb-4">Симулятор ланцюга перевірки (Short-Circuit Simulator)</h4>
+                    <div class="flex items-center justify-between min-w-[600px] gap-2 mb-6">
+                        <!-- Input 1 -->
+                        <div class="flex flex-col items-center w-1/5">
+                            <input type="text" id="multi1" value="10.5" class="w-full p-2 text-center border rounded mb-2 font-mono text-sm" placeholder="ga">
+                            <div id="led1" class="w-4 h-4 rounded-full bg-slate-300"></div>
+                            <span class="text-xs text-slate-500 mt-1">ga</span>
+                        </div>
+                        <div id="conn1" class="logic-connector"></div>
+                        
+                        <!-- Input 2 -->
+                        <div class="flex flex-col items-center w-1/5">
+                            <input type="text" id="multi2" value="20.2" class="w-full p-2 text-center border rounded mb-2 font-mono text-sm" placeholder="gb">
+                            <div id="led2" class="w-4 h-4 rounded-full bg-slate-300"></div>
+                            <span class="text-xs text-slate-500 mt-1">gb</span>
+                        </div>
+                        <div id="conn2" class="logic-connector"></div>
+
+                        <!-- Input 3 -->
+                        <div class="flex flex-col items-center w-1/5">
+                            <input type="text" id="multi3" value="ERR" class="w-full p-2 text-center border rounded mb-2 font-mono text-sm border-rose-300 bg-rose-50" placeholder="ja">
+                            <div id="led3" class="w-4 h-4 rounded-full bg-slate-300"></div>
+                            <span class="text-xs text-slate-500 mt-1">ja</span>
+                        </div>
+                        <div id="conn3" class="logic-connector"></div>
+
+                        <!-- Input 4 -->
+                        <div class="flex flex-col items-center w-1/5">
+                            <input type="text" id="multi4" value="1.1" class="w-full p-2 text-center border rounded mb-2 font-mono text-sm opacity-50" placeholder="jb">
+                            <div id="led4" class="w-4 h-4 rounded-full bg-slate-300"></div>
+                            <span class="text-xs text-slate-500 mt-1">jb</span>
+                        </div>
+                        <div id="conn4" class="logic-connector"></div>
+
+                        <!-- Input 5 -->
+                        <div class="flex flex-col items-center w-1/5">
+                            <input type="text" id="multi5" value="0.9" class="w-full p-2 text-center border rounded mb-2 font-mono text-sm opacity-50" placeholder="jc">
+                            <div id="led5" class="w-4 h-4 rounded-full bg-slate-300"></div>
+                            <span class="text-xs text-slate-500 mt-1">jc</span>
+                        </div>
+                    </div>
+
+                    <button onclick="runMultiCheck()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg">
+                        Запустити перевірку (bool allValid = ...)
+                    </button>
+                    
+                    <div id="multiOutput" class="mt-4 p-4 rounded bg-white border border-slate-200 text-center font-mono text-sm min-h-[3rem] flex items-center justify-center">
+                        Готовий до перевірки...
+                    </div>
+                </div>
+
+                <!-- Abstract Template Display -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-2">Абстрактний шаблон</h4>
+                        <p class="text-sm text-slate-600 mb-2">Для масивів довільної довжини <code>N</code>.</p>
+                        <div class="code-block">
+if (items.Length >= N) {
+    bool isAllOk = 
+       TryParse(items[0], out v1) &&
+       TryParse(items[1], out v2) &&
+       ...
+       TryParse(items[N-1], out vN);
+
+    if (isAllOk) { /* Success */ }
+}</div>
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-lg border border-amber-100">
+                        <h4 class="font-bold text-amber-800 mb-2 flex items-center gap-2">💡 Чому це краще?</h4>
+                        <ul class="list-disc list-inside text-sm text-amber-900 space-y-2">
+                            <li><strong>Стабільність:</strong> Ніяких винятків.</li>
+                            <li><strong>Чистота:</strong> Немає "піраміди" з if/else.</li>
+                            <li><strong>Продуктивність:</strong> Перевірка зупиняється миттєво при першій помилці.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: CYCLIC VALIDATION (DO-WHILE) -->
+        <section id="cycle" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-indigo-100 text-indigo-700 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm">3</span>
+                    <h3 class="text-2xl font-bold">Циклічна валідація (do-while)</h3>
+                </div>
+                <p class="text-slate-600 mb-6">
+                    Щоб змусити користувача вводити дані до тих пір, поки вони не стануть коректними, використовується цикл <code>do-while</code>. 
+                    Це гарантує, що програма не продовжить виконання з "битими" даними.
+                </p>
+
+                <div class="grid lg:grid-cols-2 gap-10 items-center">
+                    <!-- Interaction Panel -->
+                    <div class="bg-slate-900 p-6 rounded-xl shadow-xl text-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-indigo-500"></div>
+                        <h4 class="font-mono text-emerald-400 mb-4">> System Loop Simulator</h4>
+                        
+                        <div id="loopForm" class="space-y-4 transition-all duration-300">
+                            <div class="space-y-1">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Нижня межа (lower)</label>
+                                <input type="text" id="loopLower" value="10" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono focus:border-indigo-500 outline-none">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Верхня межа (upper)</label>
+                                <input type="text" id="loopUpper" value="TEXT" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono focus:border-indigo-500 outline-none">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Значення X</label>
+                                <input type="text" id="loopX" value="50" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono focus:border-indigo-500 outline-none">
+                            </div>
+                            
+                            <button onclick="runDoWhileLoop()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded mt-4 transition">
+                                Перевірити (Submit)
+                            </button>
+                        </div>
+
+                        <div id="loopFeedback" class="mt-4 p-3 bg-slate-800 rounded border border-slate-700 text-sm font-mono hidden">
+                        </div>
+                    </div>
+
+                    <!-- Chart Visualization -->
+                    <div class="space-y-4">
+                        <div class="chart-container">
+                            <canvas id="cycleChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-500 max-w-xs mx-auto">
+                            Діаграма показує кількість невдалих спроб вводу (ітерацій циклу) до успішного отримання даних.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm font-medium">© 2026 Навчальна платформа C#</p>
+            <p class="text-xs text-slate-400 mt-2">Створено на основі матеріалів "Шпаргалка: Безпечне перетворення типів у C#"</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- CHART INITIALIZATION ---
+        
+        // 1. Basics Chart (Bar)
+        const ctxBasics = document.getElementById('basicsChart').getContext('2d');
+        const basicsChart = new Chart(ctxBasics, {
+            type: 'bar',
+            data: {
+                labels: ['Надійність (Success Rate)', 'Стійкість (Crash Resistance)'],
+                datasets: [{
+                    label: 'Parse',
+                    data: [0, 0], // Init
+                    backgroundColor: '#f43f5e', // Rose 500
+                    borderRadius: 4
+                }, {
+                    label: 'TryParse',
+                    data: [100, 100], // Always high
+                    backgroundColor: '#10b981', // Emerald 500
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 2. Cycle Chart (Doughnut)
+        const ctxCycle = document.getElementById('cycleChart').getContext('2d');
+        const cycleChart = new Chart(ctxCycle, {
+            type: 'doughnut',
+            data: {
+                labels: ['Невдалі спроби', 'Успіх'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#f59e0b', '#10b981'], // Amber, Emerald
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    title: { display: true, text: 'Статистика ітерацій циклу' },
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // --- MODULE 1 LOGIC: BASICS ---
+        
+        function simulateParse() {
+            const input = document.getElementById('basicInput').value;
+            const output = document.getElementById('consoleOutput1');
+            
+            // Logic: Is it a valid integer?
+            const isValid = /^-?\d+$/.test(input.trim());
+            
+            if (isValid) {
+                output.innerHTML = `<span class="text-emerald-400">> Успіх! Число: ${parseInt(input)}</span>`;
+                output.className = "code-block h-32 flex flex-col justify-center border border-emerald-500";
+                
+                // Update chart: Parse works on valid data
+                updateBasicsChart(100, 100, 100, 100);
+            } else {
+                output.innerHTML = `<span class="text-rose-400 font-bold">> Unhandled Exception: FormatException</span><br><span class="text-slate-400 text-xs">Програма аварійно завершила роботу.</span>`;
+                output.className = "code-block h-32 flex flex-col justify-center border border-rose-500 bg-rose-950";
+                
+                // Update chart: Parse fails hard on invalid
+                updateBasicsChart(0, 0, 100, 100);
+            }
+        }
+
+        function simulateTryParse() {
+            const input = document.getElementById('basicInput').value;
+            const output = document.getElementById('consoleOutput1');
+            
+            // Logic: Is it a valid integer?
+            const isValid = /^-?\d+$/.test(input.trim());
+            
+            if (isValid) {
+                output.innerHTML = `<span class="text-emerald-400">> bool success = true;</span><br><span class="text-emerald-400">> out int result = ${parseInt(input)};</span>`;
+                output.className = "code-block h-32 flex flex-col justify-center border border-emerald-500";
+            } else {
+                output.innerHTML = `<span class="text-amber-400">> bool success = false;</span><br><span class="text-amber-400">> out int result = 0;</span><br><span class="text-slate-400 text-xs">Програма працює стабільно.</span>`;
+                output.className = "code-block h-32 flex flex-col justify-center border border-indigo-500";
+            }
+            // TryParse always has 100% resistance
+            const reliability = isValid ? 100 : 0; // Success rate depends on input, but resistance is always 100
+            updateBasicsChart(reliability, 0, 100, 100);
+        }
+
+        function updateBasicsChart(pRate, pResist, tpRate, tpResist) {
+            basicsChart.data.datasets[0].data = [pRate, pResist]; // Parse data
+            basicsChart.data.datasets[1].data = [tpRate, tpResist]; // TryParse data
+            basicsChart.update();
+        }
+
+
+        // --- MODULE 2 LOGIC: MULTIPLE CHECKS ---
+
+        function runMultiCheck() {
+            // Reset Styles
+            const inputs = ['multi1', 'multi2', 'multi3', 'multi4', 'multi5'];
+            const leds = ['led1', 'led2', 'led3', 'led4', 'led5'];
+            const conns = ['conn1', 'conn2', 'conn3', 'conn4'];
+            const output = document.getElementById('multiOutput');
+
+            // Reset UI
+            inputs.forEach((id, idx) => {
+                document.getElementById(id).style.opacity = '1';
+                document.getElementById(leds[idx]).className = "w-4 h-4 rounded-full bg-slate-300";
+            });
+            conns.forEach(id => {
+                document.getElementById(id).className = "logic-connector";
+            });
+
+            // Logic Chain simulation
+            let allValid = true;
+            let stoppedAt = -1;
+
+            for (let i = 0; i < 5; i++) {
+                const val = document.getElementById(inputs[i]).value;
+                
+                // Add delay for visualization effect
+                setTimeout(() => {
+                    if (stoppedAt !== -1) return; // Short circuit already happened
+
+                    // Check validity (Double TryParse sim)
+                    // Allow simple decimals or integers
+                    const isValid = /^-?\d*(\.\d+)?$/.test(val) && val !== "" && val !== ".";
+
+                    const led = document.getElementById(leds[i]);
+                    
+                    if (isValid) {
+                        led.className = "w-4 h-4 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50";
+                        // Color connector to next if not last
+                        if (i < 4) {
+                            document.getElementById(conns[i]).classList.add('active');
+                        }
+                    } else {
+                        led.className = "w-4 h-4 rounded-full bg-rose-500 shadow-lg shadow-rose-500/50";
+                        allValid = false;
+                        stoppedAt = i;
+                        
+                        // Break connector
+                        if (i < 4) {
+                            document.getElementById(conns[i]).classList.add('broken');
+                        }
+
+                        // Gray out subsequent
+                        for(let j=i+1; j<5; j++) {
+                            document.getElementById(inputs[j]).style.opacity = '0.3';
+                        }
+                        
+                        output.innerHTML = `<span class="text-rose-600 font-bold">Short-Circuit Triggered!</span><br>Зупинено на елементі [${i}]. Наступні перевірки пропущені.`;
+                        output.className = "mt-4 p-4 rounded bg-rose-50 border border-rose-200 text-center font-mono text-sm min-h-[3rem] flex items-center justify-center";
+                    }
+
+                    if (i === 4 && allValid) {
+                        output.innerHTML = `<span class="text-emerald-600 font-bold">All Checks Passed!</span><br>Всі змінні успішно ініціалізовані.`;
+                        output.className = "mt-4 p-4 rounded bg-emerald-50 border border-emerald-200 text-center font-mono text-sm min-h-[3rem] flex items-center justify-center";
+                    }
+
+                }, i * 400); // 400ms delay per step
+            }
+        }
+
+
+        // --- MODULE 3 LOGIC: CYCLIC VALIDATION ---
+        
+        let attempts = 0;
+
+        function runDoWhileLoop() {
+            const lower = document.getElementById('loopLower').value;
+            const upper = document.getElementById('loopUpper').value;
+            const x = document.getElementById('loopX').value;
+            const feedback = document.getElementById('loopFeedback');
+            const form = document.getElementById('loopForm');
+
+            // 1. Simulate TryParse checks
+            const r1 = /^-?\d+$/.test(lower);
+            const r2 = /^-?\d+$/.test(upper);
+            const r3 = /^-?\d+$/.test(x);
+
+            // 2. Combine Logic
+            const isDataValid = r1 && r2 && r3;
+
+            attempts++;
+
+            if (!isDataValid) {
+                // FAILURE SCENARIO
+                feedback.classList.remove('hidden');
+                feedback.innerHTML = `<span class="text-rose-400">[ПОМИЛКА]: Один із параметрів введено некоректно.</span><br>Цикл do-while починається спочатку...`;
+                feedback.classList.add('border-rose-500');
+                
+                // Visual Shake Effect for "Looping Back"
+                form.classList.add('translate-x-2');
+                setTimeout(() => form.classList.remove('translate-x-2'), 100);
+                setTimeout(() => form.classList.add('-translate-x-2'), 200);
+                setTimeout(() => form.classList.remove('-translate-x-2'), 300);
+
+                // Update Chart
+                updateCycleChart(attempts, 0);
+
+            } else {
+                // SUCCESS SCENARIO
+                feedback.classList.remove('hidden');
+                feedback.innerHTML = `<span class="text-emerald-400">Успіх! isValid = true;</span><br>Вихід з циклу. Дані прийнято.`;
+                feedback.classList.remove('border-rose-500');
+                feedback.classList.add('border-emerald-500');
+
+                // Update Chart
+                updateCycleChart(attempts - 1, 1);
+                attempts = 0; // Reset for replayability
+            }
+        }
+
+        function updateCycleChart(fails, success) {
+            cycleChart.data.datasets[0].data = [fails, success];
+            cycleChart.update();
+        }
+
+    </script>
+</body>
+</html>
